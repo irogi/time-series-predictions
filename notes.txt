@@ -1,0 +1,80 @@
+Presentation Notes
+-------------
+
+Igor Ilic
+Oct 20, 2019
+
+------------
+
+Structure:
+1 -> Introduce Problem
+2 -> Introduce Literature && results
+3 -> Describe Assumptions / data cleaning
+4 -> Describe Methods: a) SARIMA, b) LSTM, c) LSTM variants, d) TDNN
+5 -> Results && did it match?
+6 -> How to futher from this
+
+
+1 -> Introduce 'ficticious' Problem
+
+We are contacted by LAPD to help estimate the traffic of a particular highway around the LA Dodgers stadium (baseball team).
+They put up sensors to collect the number of cars that passed every five minutes (sometimes the sensors were offline for some reason),
+and have this data for the past half year. They need this to determine the size of the traffic control unit they need on various days.
+
+2 -> Literature && Results
+-> Experimental Results on the Impact of Memory in Neural Networks for Spectrum Prediction in Land Mobile Radio Bands
+Ozan Ozyegen, Sanaz Mohammadjafari, Emir Kavurmacioglu, John Maidens, Ayse Basar
+-> Neural Network Based Spectrum Prediction in Land Mobile Radio Bands for IoT deployments
+Sanaz Mohammadjafari, Emir Kavurmacioglu, John Maidens, Ayse Bener
+-> Long Short-Term Memory
+Sepp Hochreiter, Jurgen Schmidhuber
+-> Dropout: A Simple Way to Prevent Neural Networks from Overfitting
+Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, Ruslan Salakhutdinov
+-> Adam: A Method For Stochastic Optimization
+Diederik P. Kingma, Jimmy Lei Ba
+-> The Box-Jenkins approach to time series analysis and forecasting : principles and applications
+Warren L. Young
+-> Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling
+Junyoung Chung, Caglar Gulcehre, KyungHyun Cho, Yoshua Bengio
+
+3 -> Describe Assumptions / data cleaning
+To simplify the inital approach, we are only considering the number of cars that pass a certain point. As well, the assumption
+was made that there is high variance in the minute-by-minute car count, so we have taken our data and condensed the data into
+day units.
+
+There was lots of missing 5-minute segments. To accomodate for these missing individual units, for each 5minute interval that was
+missed, the average of that 5minute interval was used. Then, there was a summation by day, so this can rid some of the (assumed gaussian)
+noise in this approximation.
+
+4 -> Describe Methods: a) SARIMA, b) LSTM, c) LSTM variants, d) TDNN
+
+SARIMA: Seasonal Arima
+Idea is to combine the AutoRegressive (previous datapoints) model with the MovingAverage (previous error) model. Then, we need 
+to make the data stationary by using differencing of the raw data. There is a seasonal portion to the data, so we need to account
+for that by using SARIMA(3,0,1)(1,0,3)7. Fit using Box Jenkings method.
+
+We see that this misses a lot of high/low points, but captures the pattern of the data well.
+
+LSTM: LongShort Term Memroy
+We take the previous 7 points as the input to the model, and need to retain one bit of state. Then, we train the data 
+using a mean squared error loss function (as done in Experimental results) and an Adams optimizer.
+
+We see it is very accurate at the beginning, and then starts missing the data as it progresses, but stays consistently inaccurate.
+
+LSTM: Variants (Optimizer / Dense Network / L2 Regularization)
+These methods all proved to be not useful. These all help deal with overfitting, but due to the lack of data there isn't any overfitting introduced
+by our model yet and we don't necessitate the extra complexity. The dense case has been shown in the presentation, but the rest follow a similar 
+structure.
+
+TDNN:
+
+
+5 -> Results && did it match?
+
+We saw results similar to what was said by Ozen et al. where the predictions initially made by the LSTM were initially more accurate,
+then faded to be slightly worse than ARIMA for longer forecasting. This was all for the simple LSTM model, without any further complexities.
+THe further complexities increased the error, mainly due to the small size of the data set.
+
+6 -> How to futher from this
+-> Larger Data Set
+-> Gated Recurrent Neural Networks 
